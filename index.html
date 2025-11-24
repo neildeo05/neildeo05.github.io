@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Neil Deo | Computer & Semiconductor Engineering</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Personal site and blog for Neil Deo – computer engineering, semiconductors, hardware, and AI."
+  />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Markdown renderer for blog -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo-and-name">
+        <div class="logo-dot"></div>
+        <div>
+          <div class="name">Neil Deo</div>
+          <div class="tagline">Computer Engineering @ UIUC · Semiconductor Engineering</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#about">About</a>
+        <a href="#interests">Interests</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#blog">Blog</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero / Intro -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <h1>Hardware, semiconductors, and AI at the edge of abstraction.</h1>
+          <p>
+            I'm an undergraduate in Computer Engineering with a minor in Semiconductor Engineering at the
+            University of Illinois Urbana-Champaign, working at the intersection of
+            hardware design, device physics, and machine learning.
+          </p>
+          <div class="hero-links">
+            <a href="mailto:neildeo2@illinois.edu" class="btn primary">Email</a>
+            <a href="https://github.com/neildeo05" class="btn ghost" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+            <a href="https://linkedin.com/in/neildeo" class="btn ghost" target="_blank" rel="noopener noreferrer">
+              LinkedIn
+            </a>
+            <!-- Replace resume.pdf with your actual filename when deployed -->
+            <a href="resume.pdf" class="btn ghost" target="_blank" rel="noopener noreferrer">
+              Resume
+            </a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h2>Current Focus</h2>
+          <ul>
+            <li>Dynamic power modeling for RTL designs</li>
+            <li>Solid-state device simulation and neuromorphic ECRAM</li>
+            <li>FPGA-based AI acceleration and RISC-V microarchitectures</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="section">
+      <div class="container section-inner">
+        <h2>About</h2>
+        <p>
+          I'm currently pursuing a B.S. in Computer Engineering with a Semiconductor Engineering minor at UIUC.
+          My coursework and research span computer architecture, FPGA systems, semiconductor devices, and IC
+          fabrication. I've worked across industry and research on topics like power estimation for RTL,
+          neuromorphic memories, and ML-based detection systems.
+        </p>
+        <p>
+          I care about building hardware and tooling that make advanced compute more efficient, more accessible,
+          and better grounded in physical reality.
+        </p>
+      </div>
+    </section>
+
+    <!-- Interests -->
+    <section id="interests" class="section section-alt">
+      <div class="container section-inner">
+        <h2>Interests</h2>
+        <div class="pill-row">
+          <span class="pill">Computer architecture · RISC-V</span>
+          <span class="pill">Digital design · SystemVerilog</span>
+          <span class="pill">FPGA-based acceleration</span>
+          <span class="pill">Semiconductor devices & fabrication</span>
+          <span class="pill">Neuromorphic hardware · ECRAM</span>
+          <span class="pill">EDA tooling & verification</span>
+          <span class="pill">Applied ML & detection systems</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section id="experience" class="section">
+      <div class="container section-inner">
+        <h2>Experience & Research</h2>
+        <div class="grid two-col">
+          <!-- Silimate -->
+          <article class="card">
+            <div class="card-header">
+              <h3>Silimate (YC 2023)</h3>
+              <span class="badge">Hardware Modelling Intern · Jun 2025 – Aug 2025 · Mountain View, CA</span>
+            </div>
+            <ul class="card-list">
+              <li>
+                Built interpolation algorithms and inference flows to predict dynamic power of RTL designs,
+                achieving estimates within ~20% of commercial power tools.
+              </li>
+              <li>
+                Developed and deployed a transistor-level architectural redesign that improved model accuracy
+                by &gt;50%.
+              </li>
+              <li>
+                Designed a CocoTB-based verification suite to generate ground-truth power data and validate
+                end-to-end model robustness.
+              </li>
+            </ul>
+          </article>
+
+          <!-- ASAP Center -->
+          <article class="card">
+            <div class="card-header">
+              <h3>ASAP – Center for Advanced Semiconductor Chips</h3>
+              <span class="badge">Undergraduate Research Assistant · Aug 2025 – Present · Champaign, IL</span>
+            </div>
+            <ul class="card-list">
+              <li>
+                Built COMSOL models of solid-state lithium-ion devices to quantify ion transport, creating a
+                reference framework for benchmarking transport models.
+              </li>
+              <li>
+                Working under Prof. Shaloo Rakheja on Electrochemical RAM (ECRAM) simulations to characterize
+                power and switching energy across neuromorphic device designs.
+              </li>
+            </ul>
+          </article>
+
+          <!-- Shothawk AI -->
+          <article class="card">
+            <div class="card-header">
+              <h3>Shothawk AI</h3>
+              <span class="badge">AI Engineering Intern · May 2024 – Present · Peoria, IL</span>
+            </div>
+            <ul class="card-list">
+              <li>
+                Led an architectural shift to a DETR-based weapons-detection model, improving precision from
+                23.6% to 80%.
+              </li>
+              <li>
+                Built a 100k+ image dataset from stills, YouTube frames, and hard negative samples to reduce
+                false positives.
+              </li>
+              <li>
+                Integrated and tuned Norfair tracking, improving tracking performance by ~45%.
+              </li>
+            </ul>
+          </article>
+
+          <!-- Skills -->
+          <article class="card">
+            <div class="card-header">
+              <h3>Technical Skills</h3>
+              <span class="badge">Languages & Tools</span>
+            </div>
+            <p><strong>Languages:</strong> SystemVerilog, Python, Tcl, C/C++, Assembly, Scala, Java</p>
+            <p>
+              <strong>EDA:</strong> Verilator, OpenROAD, OpenSTA, yosys, CocoTB, COMSOL, Synopsys VCS,
+              Synopsys Design Compiler
+            </p>
+            <p>
+              <strong>Software:</strong> PyTorch, LangChain, NumPy, SciPy, pybind11, pyosys, Git, CMake, uv, Meson
+            </p>
+            <p><strong>Honors:</strong> Samsung Semiconductor Scholarship · James Scholar</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects" class="section section-alt">
+      <div class="container section-inner">
+        <h2>Selected Projects</h2>
+        <div class="grid two-col">
+          <article class="card">
+            <div class="card-header">
+              <h3>FPGA AI Accelerator</h3>
+              <span class="badge">SystemVerilog, Python · Mar 2025 – May 2025</span>
+            </div>
+            <p>
+              Custom systolic-array AI accelerator on FPGA with FP8 and BF16 floating-point pipelines for
+              high-throughput matrix compute.
+            </p>
+            <ul class="card-list">
+              <li>Implemented scan-chain weight loading and FIFO-buffered input streaming.</li>
+              <li>Deployed DeepTornado neural network for fully in-hardware inference.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Out-of-Order RISC-V Processor</h3>
+              <span class="badge">SystemVerilog · Sep 2025 – Present</span>
+            </div>
+            <p>
+              Building an out-of-order RISC-V core with explicit register renaming and speculative execution
+              for higher IPC.
+            </p>
+            <ul class="card-list">
+              <li>
+                Implements an early branch-recovery mechanism to reduce misprediction penalties.
+              </li>
+              <li>
+                Uses a tournament-style predictor combining GShare and a two-level predictor for control-flow accuracy.
+              </li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>FPGA CLB Logic Design</h3>
+              <span class="badge">SystemVerilog, C++ · Aug 2024 – Nov 2024</span>
+            </div>
+            <p>
+              Designed a configurable logic block (CLB) inspired by the XC2064 FPGA with a scan-chain
+              programming interface.
+            </p>
+            <ul class="card-list">
+              <li>Supports dynamic logic reconfiguration via scan-chain.</li>
+              <li>Includes a C++ bitstream generator compiling logic into scan-chain data.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>More on GitHub</h3>
+              <span class="badge">
+                <a href="https://github.com/neildeo05" target="_blank" rel="noopener noreferrer">
+                  github.com/neildeo05
+                </a>
+              </span>
+            </div>
+            <p>
+              Additional experiments, course projects, and tooling live on my GitHub: scripts, FPGA designs,
+              and assorted ML explorations.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog -->
+    <section id="blog" class="section">
+      <div class="container section-inner blog-layout">
+        <div class="blog-list">
+          <h2>Blog</h2>
+          <p class="blog-subtitle">
+            Posts are written in markdown and rendered client-side. Add a new <code>.md</code> file in
+            <code>/blog</code> and register it in <code>script.js</code> to publish.
+          </p>
+          <div id="blog-post-list"></div>
+        </div>
+        <article class="blog-content">
+          <div id="blog-post-view">
+            <h3>Select a post to read</h3>
+            <p>
+              The blog supports full markdown: code blocks, math (via raw HTML or your own renderer), and images.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section section-alt">
+      <div class="container section-inner">
+        <h2>Contact</h2>
+        <p>
+          The best way to reach me is by email. I'm always interested in discussing hardware, semiconductors,
+          and weird architectures that might actually work.
+        </p>
+        <ul class="contact-list">
+          <li><strong>Email:</strong> <a href="mailto:neildeo2@illinois.edu">neildeo2@illinois.edu</a></li>
+          <li>
+            <strong>GitHub:</strong>
+            <a href="https://github.com/neildeo05" target="_blank" rel="noopener noreferrer">
+              github.com/neildeo05
+            </a>
+          </li>
+          <li>
+            <strong>LinkedIn:</strong>
+            <a href="https://linkedin.com/in/neildeo" target="_blank" rel="noopener noreferrer">
+              linkedin.com/in/neildeo
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span id="year"></span> Neil Deo</span>
+      <span class="footer-separator">·</span>
+      <a href="https://github.com/neildeo05/neildeo05.github.io" target="_blank" rel="noopener noreferrer">
+        View this site on GitHub
+      </a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
