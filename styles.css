@@ -23,13 +23,27 @@ body {
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at 0 0, #1f2937 0, #05060a 45%) fixed;
   color: var(--text);
+  background: #020617;
+  position: relative;
+  min-height: 100vh;
 }
+
+/* Game of Life canvas background */
+
+#gol-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: #020617;
+}
+
+/* Layer to slightly darken/blur the background under content (via section backgrounds and cards) */
 
 /* Layout helpers */
 
@@ -45,12 +59,7 @@ body {
 }
 
 .section-alt {
-  background: radial-gradient(circle at 100% 0, #111827 0, #05060a 55%);
-}
-
-.section-inner h2 {
-  margin: 0 0 1.5rem;
-  font-size: 1.8rem;
+  padding: 4rem 0;
 }
 
 /* Header / Nav */
@@ -60,7 +69,7 @@ body {
   top: 0;
   z-index: 40;
   backdrop-filter: blur(18px);
-  background: linear-gradient(to bottom, rgba(5, 6, 10, 0.95), rgba(5, 6, 10, 0.75));
+  background: linear-gradient(to bottom, rgba(5, 6, 10, 0.96), rgba(5, 6, 10, 0.8));
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
@@ -190,6 +199,7 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.3);
   padding: 1.4rem 1.6rem;
   box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
 }
 
 .hero-card h2 {
@@ -206,6 +216,11 @@ body {
 
 /* Cards, grid, badges */
 
+.section-inner h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.8rem;
+}
+
 .grid.two-col {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -213,11 +228,12 @@ body {
 }
 
 .card {
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.82));
+  background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.96));
   border-radius: var(--radius-lg);
   border: 1px solid rgba(31, 41, 55, 0.95);
   padding: 1.25rem 1.3rem;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
 }
 
 .card-header {
@@ -267,109 +283,7 @@ body {
   font-size: 0.85rem;
   color: var(--muted);
   background: rgba(15, 23, 42, 0.85);
-}
-
-/* Blog */
-
-.blog-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr);
-  gap: 1.75rem;
-}
-
-.blog-subtitle {
-  margin-top: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.blog-subtitle code {
-  font-size: 0.85rem;
-}
-
-#blog-post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  margin-top: 1rem;
-}
-
-.blog-list-item {
-  border-radius: 0.9rem;
-  padding: 0.7rem 0.75rem;
-  border: 1px solid rgba(31, 41, 55, 0.9);
-  background: rgba(15, 23, 42, 0.9);
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: background 0.15s ease, border 0.15s ease, transform 0.08s ease;
-}
-
-.blog-list-item:hover {
-  background: rgba(30, 64, 175, 0.33);
-  border-color: rgba(59, 130, 246, 0.9);
-  transform: translateY(-1px);
-}
-
-.blog-list-title-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.blog-list-title {
-  font-size: 0.98rem;
-}
-
-.blog-list-date {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.blog-list-summary {
-  margin-top: 0.3rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.blog-content {
-  border-radius: var(--radius-lg);
-  background: rgba(15, 23, 42, 0.98);
-  border: 1px solid rgba(31, 41, 55, 0.85);
-  padding: 1.1rem 1.25rem;
-  max-height: 32rem;
-  overflow: auto;
-}
-
-/* Markdown content inside blog */
-
-#blog-post-view h1,
-#blog-post-view h2,
-#blog-post-view h3 {
-  margin-top: 0;
-}
-
-#blog-post-view h3 {
-  font-size: 1.1rem;
-}
-
-#blog-post-view p {
-  color: var(--muted);
-}
-
-#blog-post-view code {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-  font-size: 0.85rem;
-}
-
-#blog-post-view pre {
-  background: #020617;
-  border-radius: 0.75rem;
-  padding: 0.8rem;
-  overflow: auto;
-  border: 1px solid rgba(55, 65, 81, 0.9);
+  backdrop-filter: blur(10px);
 }
 
 /* Contact */
@@ -392,6 +306,8 @@ body {
   padding: 1.25rem 0 1.8rem;
   font-size: 0.8rem;
   color: var(--muted);
+  backdrop-filter: blur(12px);
+  background: linear-gradient(to top, rgba(3, 7, 18, 0.96), rgba(3, 7, 18, 0.8));
 }
 
 .site-footer .container {
@@ -448,14 +364,6 @@ a:hover {
   .grid.two-col {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .blog-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .blog-content {
-    max-height: none;
-  }
 }
 
 @media (max-width: 500px) {
@@ -463,4 +371,33 @@ a:hover {
     flex-direction: column;
     align-items: stretch;
   }
+}
+.gol-toggle-btn {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 50;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  transition: background 0.15s ease, border 0.15s ease, transform 0.08s ease,
+    box-shadow 0.15s ease;
+}
+
+.gol-toggle-btn:hover {
+  background: rgba(30, 64, 175, 0.95);
+  border-color: rgba(59, 130, 246, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
+}
+
+.gol-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8);
 }

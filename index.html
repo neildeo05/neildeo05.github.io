@@ -9,10 +9,22 @@
     content="Personal site for Neil Deo – computer engineering, semiconductors, hardware, and AI."
   />
   <link rel="stylesheet" href="styles.css" />
-  <!-- Markdown renderer for blog -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+    <!-- Game of Life background canvas -->
+  <canvas id="gol-bg"></canvas>
+
+  <!-- Play / Pause control for Game of Life -->
+  <button
+    id="gol-toggle"
+    class="gol-toggle-btn"
+    type="button"
+    aria-pressed="false"
+  >
+    Play
+  </button>
+
+
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo-and-name">
@@ -27,7 +39,6 @@
         <a href="#interests">Interests</a>
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
-        <!-- <a href="#blog">Blog</a> -->
         <a href="#contact">Contact</a>
       </nav>
     </div>
@@ -52,7 +63,7 @@
             <a href="https://linkedin.com/in/neildeo" class="btn ghost" target="_blank" rel="noopener noreferrer">
               LinkedIn
             </a>
-            <!-- Replace resume.pdf with your actual filename when deployed -->
+            <!-- Put your resume at this path in the repo (or change the href) -->
             <a href="resume.pdf" class="btn ghost" target="_blank" rel="noopener noreferrer">
               Resume
             </a>
@@ -89,7 +100,7 @@
     <!-- Interests -->
     <section id="interests" class="section section-alt">
       <div class="container section-inner">
-        <h2>Interests and Skills</h2>
+        <h2>Interests</h2>
         <div class="pill-row">
           <span class="pill">Applied ML & detection systems</span>
           <span class="pill">Computer Architecture</span>
@@ -258,28 +269,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Blog -->
-    <!-- <section id="blog" class="section">
-      <div class="container section-inner blog-layout">
-        <div class="blog-list">
-          <h2>Blog</h2>
-          <p class="blog-subtitle">
-            Posts are written in markdown and rendered client-side. Add a new <code>.md</code> file in
-            <code>/blog</code> and register it in <code>script.js</code> to publish.
-          </p>
-          <div id="blog-post-list"></div>
-        </div>
-        <article class="blog-content">
-          <div id="blog-post-view">
-            <h3>Select a post to read</h3>
-            <p>
-              The blog supports full markdown: code blocks, math (via raw HTML or your own renderer), and images.
-            </p>
-          </div>
-        </article>
-      </div>
-    </section> -->
 
     <!-- Contact -->
     <section id="contact" class="section section-alt">
