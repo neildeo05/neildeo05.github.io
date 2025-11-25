@@ -6,15 +6,15 @@ function setYear() {
   }
 }
 
-// ===== Game of Life background =====
+// ===== Game of Life in hero card =====
 
 class GameOfLife {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: false });
 
-    // Adjust cell size to taste: smaller = more cells
-    this.cellSize = 9;
+    // Smaller cellSize -> more cells
+    this.cellSize = 8;
     this.cols = 0;
     this.rows = 0;
     this.grid = null;
@@ -22,21 +22,22 @@ class GameOfLife {
 
     this.lastFrameTime = 0;
     this.frameInterval = 80; // ms between generations
-    this.running = false; // start paused
+    this.running = true; // auto-run like the reference
 
     window.addEventListener("resize", () => this.handleResize());
     this.handleResize();
   }
 
   handleResize() {
+    if (!this.canvas) return;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width || 320;
+    const height = rect.height || 220;
     const dpr = window.devicePixelRatio || 1;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
 
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
-    this.canvas.style.width = width + "px";
-    this.canvas.style.height = height + "px";
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     this.cols = Math.floor(width / this.cellSize);
@@ -45,7 +46,6 @@ class GameOfLife {
     this.grid = new Uint8Array(this.cols * this.rows);
     this.nextGrid = new Uint8Array(this.cols * this.rows);
 
-    // Seed with several gliders on the left side
     this.seedGliders();
     this.draw();
   }
@@ -55,13 +55,12 @@ class GameOfLife {
   }
 
   clear() {
-    this.grid.fill(0);
-    this.nextGrid.fill(0);
+    if (this.grid) this.grid.fill(0);
+    if (this.nextGrid) this.nextGrid.fill(0);
   }
 
   // Place a single canonical glider (moving down-right) with top-left at (x, y)
   placeGlider(x, y) {
-    // glider pattern relative offsets
     //  . # .
     //  . . #
     //  # # #
@@ -70,7 +69,7 @@ class GameOfLife {
       [2, 1],
       [0, 2],
       [1, 2],
-      [2, 2]
+      [2, 2],
     ];
 
     for (const [dx, dy] of pattern) {
@@ -86,23 +85,17 @@ class GameOfLife {
   seedGliders() {
     this.clear();
 
-    if (this.cols < 5 || this.rows < 5) {
-      // Too small to safely place gliders
-      return;
-    }
+    if (this.cols < 5 || this.rows < 5) return;
 
     const maxGlidersWanted = 4;
     const gliderHeight = 5;
-    const spacing = 7; // rows between gliders
+    const spacing = 7;
 
-    // How many gliders can we fit vertically?
-    const maxPossible = Math.max(
-      1,
-      Math.floor((this.rows - gliderHeight) / spacing) + 1
-    );
-    const count = Math.min(maxGlidersWanted, maxPossible);
+    const maxPossible =
+      Math.floor((this.rows - gliderHeight) / spacing) + 1;
+    const count = Math.min(maxGlidersWanted, Math.max(1, maxPossible));
 
-    const startX = 2; // near left edge
+    const startX = 2;
     for (let i = 0; i < count; i++) {
       const baseY = 2 + i * spacing;
       if (baseY + gliderHeight < this.rows) {
@@ -111,18 +104,17 @@ class GameOfLife {
     }
   }
 
-  // Toggle a cell based on client-space coordinates
+  // Toggle a cell based on a click inside the canvas
   toggleAtClientCoord(clientX, clientY) {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const rect = this.canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
+    if (x < 0 || y < 0 || x >= rect.width || y >= rect.height) return;
     if (this.cols === 0 || this.rows === 0) return;
 
-    const xNorm = clientX / width;
-    const yNorm = clientY / height;
-
-    const col = Math.floor(xNorm * this.cols);
-    const row = Math.floor(yNorm * this.rows);
+    const col = Math.floor(x / this.cellSize);
+    const row = Math.floor(y / this.cellSize);
 
     if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) return;
 
@@ -167,7 +159,6 @@ class GameOfLife {
       }
     }
 
-    // Swap grids
     const tmp = this.grid;
     this.grid = this.nextGrid;
     this.nextGrid = tmp;
@@ -180,14 +171,18 @@ class GameOfLife {
     const rows = this.rows;
     const g = this.grid;
 
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (!ctx || !g) return;
 
-    // Background
-    ctx.fillStyle = "#020617";
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const rect = this.canvas.getBoundingClientRect();
 
-    // Alive cells
-    ctx.fillStyle = "#14b8a6"; // teal
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    // Background: pure black
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    // Alive cells: white
+    ctx.fillStyle = "#ffffff";
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         if (g[this.index(x, y)]) {
@@ -201,8 +196,8 @@ class GameOfLife {
       }
     }
 
-    // Grid lines
-    ctx.strokeStyle = "rgba(30, 64, 175, 0.45)";
+    // Grid lines: dark gray
+    ctx.strokeStyle = "#111827";
     ctx.lineWidth = 1;
 
     for (let x = 0; x <= cols; x++) {
@@ -228,6 +223,7 @@ class GameOfLife {
       }
       this.draw();
     }
+
     requestAnimationFrame((t) => this.update(t));
   }
 
@@ -239,10 +235,12 @@ class GameOfLife {
   }
 }
 
+// ===== Wire everything up =====
+
 document.addEventListener("DOMContentLoaded", () => {
   setYear();
 
-  const canvas = document.getElementById("gol-bg");
+  const canvas = document.getElementById("gol-canvas");
   if (!canvas) return;
 
   const gol = new GameOfLife(canvas);
@@ -258,20 +256,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   refreshButton();
 
-  // Click to toggle cells (ignore clicks on links / buttons)
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (target.closest("a, button")) {
-      return;
-    }
+  // Click inside the canvas to toggle cells
+  canvas.addEventListener("click", (event) => {
     gol.toggleAtClientCoord(event.clientX, event.clientY);
   });
 
-  // Button to start/stop simulation
+  // Play / Pause button
   if (toggleBtn) {
-    toggleBtn.addEventListener("click", (event) => {
-      // Don't let this propagate to the document-level click (which would toggle a cell)
-      event.stopPropagation();
+    toggleBtn.addEventListener("click", () => {
       gol.running = !gol.running;
       refreshButton();
     });
