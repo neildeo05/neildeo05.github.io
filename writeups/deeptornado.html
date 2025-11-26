@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tornado Prediction Neural Network with Systolic Arrays | Neil Deo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .writeup {
+        max-width: 780px;
+        margin: 0 auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+      .writeup h1 {
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+      }
+      .writeup h2 {
+        margin-top: 2rem;
+        margin-bottom: 0.4rem;
+        font-size: 1.3rem;
+      }
+      .writeup h3 {
+        margin-top: 1.4rem;
+        margin-bottom: 0.25rem;
+        font-size: 1.05rem;
+      }
+      .writeup p {
+        margin: 0.4rem 0;
+      }
+      .writeup ul {
+        margin: 0.4rem 0 0.4rem 1.25rem;
+      }
+      .writeup code {
+        font-family: "Arial";
+        font-size: 0.9em;
+      }
+      .writeup-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+      }
+      .writeup-table {
+        border-collapse: collapse;
+        margin: 0.75rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      .writeup-table th,
+      .writeup-table td {
+        border: 1px solid var(--border);
+        padding: 0.35rem 0.6rem;
+        text-align: left;
+      }
+      .writeup-table th {
+        background: #f3f4f6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <div class="container header-inner">
+          <div class="logo-and-name">
+            <div class="logo-dot"></div>
+            <div>
+              <div class="name">Neil Deo</div>
+              <div class="tagline">Computer &amp; Semiconductor Engineering</div>
+            </div>
+          </div>
+          <nav class="nav">
+            <a href="../index.html">Home</a>
+            <a href="index.html">Writeups</a>
+            <a href="https://github.com/neildeo05" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="site-main">
+        <section class="section">
+          <div class="container">
+            <article class="writeup">
+              <h1>DeepTornado: Tornado Prediction Neural Network with Systolic Arrays</h1>
+              <div class="writeup-meta">
+                ECE 385 &mdash; Final Experiment, Spring 2025
+              </div>
+
+              <h2>Motivation &amp; Overview</h2>
+              <p>
+                For our final project in ECE 385 we built a custom neural network accelerator
+                on an FPGA and pointed it at a real problem: tornado prediction over the state
+                of Illinois. The goal was to design a parameterized systolic array for matrix
+                multiplication, implement an 8&times;12&times;1 neural network in low-precision
+                floating point, and drive a live radar-style visualization for a historical
+                tornado event.
+              </p>
+              <p>
+                The accelerator runs a model we call <strong>DeepTornado</strong>, which
+                ingests weather features from 11 locations over time and outputs a tornado
+                probability per station and hour. The FPGA-side graphics module turns these
+                probabilities into a colored map that looks like a simplified NOAA radar
+                display.
+              </p>
+
+              <h2>DeepTornado model architecture</h2>
+              <p>
+                DeepTornado is a small fully-connected network with two layers:
+              </p>
+              <ul>
+                <li>Input layer: 8 features</li>
+                <li>Hidden layer: 12 neurons with ReLU</li>
+                <li>Output layer: 1 neuron with sigmoid (tornado probability)</li>
+              </ul>
+
+              <p>
+                The 8 input features come from surface and higher-altitude weather
+                measurements (e.g., temperature, dew point, wind speed and direction at
+                multiple heights, vapor pressure deficit). For wind, we encode speed and
+                direction together using polar coordinates; this makes the regression problem
+                better conditioned than feeding raw mph values.
+              </p>
+
+              <p>
+                The model was trained on a custom dataset of about 8000 examples built from
+                NOAA weather incident data and OpenMeteo historical weather APIs. Roughly
+                6000 samples correspond to non-tornado conditions and 2000 to tornado
+                conditions. Trained for 100 epochs, the model reaches around 89% validation
+                accuracy and is small enough to fit comfortably on our weight-stationary
+                systolic array implementation.
+              </p>
+
+              <h2>Mapping the model to matrix operations</h2>
+              <p>
+                Because DeepTornado is fully connected, inference can be expressed purely as
+                a sequence of matrix multiplies plus biases and pointwise activations:
+              </p>
+              <ul>
+                <li>
+                  First layer: <code>h = ReLU(W₁x + b₁)</code>, where
+                  <code>W₁ &in; ℝ<sup>12×8</sup></code>
+                </li>
+                <li>
+                  Second layer: <code>y = sigmoid(W₂h + b₂)</code>,
+                  <code>W₂ &in; ℝ<sup>1×12</sup></code>
+                </li>
+              </ul>
+              <p>
+                On the FPGA we implement each matrix multiply using a 2D systolic array. The
+                first layer uses an 8&times;12 array; the second layer uses a 12&times;1
+                array. The intermediate activations flow directly from the first array
+                through the ReLU/format-conversion hardware into the second array.
+              </p>
+
+              <h2>Systolic array architecture</h2>
+              <p>
+                A systolic array is a regular 2D mesh of processing elements (PEs) that
+                repeatedly perform a multiply-accumulate operation while streaming data
+                across the array. In our implementation each PE:
+              </p>
+              <ul>
+                <li>
+                  Holds a <strong>stationary weight</strong> in a small register loaded at
+                  startup.
+                </li>
+                <li>
+                  Receives an activation value from the left, multiplies, and accumulates
+                  with a running BF16 sum from the top.
+                </li>
+                <li>
+                  Forwards its activation to the right and its partial sum downward.
+                </li>
+              </ul>
+
+              <p>
+                For DeepTornado we instantiate:
+              </p>
+              <ul>
+                <li>An 8&times;12 WS systolic array for the first layer</li>
+                <li>A 12&times;1 WS systolic array for the second layer</li>
+              </ul>
+
+              <p>
+                Inputs and weights are held in ROMs and streamed into the PEs. The output of
+                the first array is valid after a fixed latency (determined by the array
+                dimensions and input pipeline). These outputs then feed into the second
+                array, which in turn feeds an output FIFO that stores the 11 probabilities
+                (one per weather station).
+              </p>
+
+              <h2>Weight loading via scan chains</h2>
+              <p>
+                The first layer needs 96 8-bit weights (8&times;12), and the second layer
+                needs 12 8-bit weights. To avoid wiring a wide parallel bus to every PE, we
+                use a <strong>scan-chain-style</strong> weight loading scheme:
+              </p>
+              <ul>
+                <li>
+                  A dedicated <em>Weight ROM</em> streams weights into the first PE in each
+                  row.
+                </li>
+                <li>
+                  Each PE has a scan-chain input and output; during weight loading these form
+                  a giant shift register across the entire array.
+                </li>
+                <li>
+                  After 96 cycles, each PE has latched its weight, and normal computation can
+                  start.
+                </li>
+              </ul>
+
+              <p>
+                For the second layer, weights are small enough to be stored directly in LUTs
+                rather than in a ROM; the same scan-chain pattern is used to distribute them
+                across the 12 PEs.
+              </p>
+
+              <h2>Input streaming with FIFO buffers</h2>
+              <p>
+                Systolic arrays rely on carefully phased data streams. In an m&times;n
+                array, each row must see its inputs one cycle after the row above it.
+              </p>
+              <p>
+                We implement this using a bank of eight small FIFOs (one per row) wrapped in
+                a module called <code>FIFOBuffer</code>. The buffer accepts:
+              </p>
+              <ul>
+                <li>An 8-bit one-hot <code>enable</code> vector</li>
+                <li>An 8-bit one-hot <code>rw</code> (read/write) vector</li>
+              </ul>
+
+              <p>
+                During the “load” phase we slide the one-hot bits across the FIFOs, writing
+                11 values per FIFO from the single-port Input ROM. During the “compute”
+                phase we shift a 1 through the enable signals to read from each FIFO in turn.
+                This produces exactly the one-cycle stagger between successive rows required
+                for systolic operation.
+              </p>
+
+              <h2>Floating-point formats and arithmetic</h2>
+              <p>
+                The accelerator uses two custom number formats:
+              </p>
+              <ul>
+                <li>
+                  <strong>FP8 e4m3</strong> (1 sign, 4 exponent, 3 mantissa bits) for
+                  multiplications and storage of weights/activations.
+                </li>
+                <li>
+                  <strong>BF16</strong> (1 sign, 8 exponent, 7 mantissa bits) for
+                  accumulators and intermediate sums.
+                </li>
+              </ul>
+
+              <p>
+                The rationale:
+              </p>
+              <ul>
+                <li>
+                  FP8 keeps memory footprint and multiplication area low (the mantissa
+                  multiply is effectively 4 bits).
+                </li>
+                <li>
+                  BF16 shares FP32’s exponent width, which helps prevent overflow and keeps
+                  a reasonable dynamic range in the accumulators.
+                </li>
+              </ul>
+
+              <h3>FP8 &rarr; BF16 multiply</h3>
+              <p>
+                Our FP8 multiplier first normalizes the 4-bit FP8 exponents, adds them, and
+                re-biases to BF16’s exponent bias. Mantissas are multiplied, normalized, and
+                distilled into a 7-bit BF16 mantissa. This fused FP8&times;FP8&rarr;BF16
+                primitive forms the core of each PE’s multiply-accumulate.
+              </p>
+
+              <h3>BF16 addition</h3>
+              <p>
+                Addition looks like textbook floating-point addition:
+              </p>
+              <ul>
+                <li>Align exponents by shifting the smaller mantissa</li>
+                <li>Add or subtract mantissas depending on signs</li>
+                <li>Normalize the result and adjust the exponent</li>
+              </ul>
+              <p>
+                To save area we skipped rounding logic, which turned out to introduce
+                noticeable numerical error over long accumulation chains&mdash;one of the
+                main lessons learned from the project.
+              </p>
+
+              <h3>Nonlinearities: ReLU and sigmoid</h3>
+              <p>
+                Between the two layers we use a fused
+                <code>ReLU + BF16&rarr;FP8</code> block that:
+              </p>
+              <ul>
+                <li>Converts BF16 outputs from the first layer back to FP8</li>
+                <li>Applies ReLU by zeroing negative values</li>
+              </ul>
+
+              <p>
+                At the end of the second layer we need a sigmoid. Implementing sigmoid in
+                full precision would be expensive, so we instead approximate it using a small
+                ROM-based lookup table:
+              </p>
+              <ul>
+                <li>
+                  We quantize the BF16 input down to a coarser FP8-like key (sign, exponent,
+                  and the top mantissa bit).
+                </li>
+                <li>
+                  This key indexes a 64-entry ROM holding sigmoid outputs in FP8 format.
+                </li>
+              </ul>
+
+              <h2>End-to-end DeepTornado operation</h2>
+              <p>
+                The graphics module exposes a <code>calculate_next</code> signal that
+                triggers inference for the next hour. When this goes high:
+              </p>
+              <ol>
+                <li>
+                  The internal hour counter advances and the next “page” of input features
+                  (11 stations &times; 8 features) is read from the Input ROM into the
+                  <code>FIFOBuffer</code>.
+                </li>
+                <li>
+                  The first 8&times;12 systolic array consumes these inputs, with valid data
+                  emerging after a fixed number of cycles.
+                </li>
+                <li>
+                  ReLU+conversion logic converts outputs to FP8 and passes them into the
+                  12&times;1 second-layer array.
+                </li>
+                <li>
+                  The second array’s outputs feed an OutputFIFO, which collects 11 scalar
+                  probabilities (one per station).
+                </li>
+              </ol>
+
+              <p>
+                Between <code>calculate_next</code> pulses, the OutputFIFO simply holds the
+                most recent set of probabilities for the graphics subsystem.
+              </p>
+
+              <h2>TornadoBuddy dashboard &amp; graphics</h2>
+              <p>
+                The FPGA also renders a dashboard we called
+                <strong>TornadoBuddy</strong>: a map of Illinois, 11 weather stations, and a
+                colored probability field over the region affected by the Rochelle–Fairdale
+                tornado.
+              </p>
+
+              <p>Key pieces of the graphics pipeline:</p>
+              <ul>
+                <li>
+                  A ROM holding the static background (Illinois outline, city labels, UI
+                  text).
+                </li>
+                <li>
+                  A nearest-neighbor interpolation scheme that spreads the 11 per-station
+                  probabilities across a coarse grid of “zones” on the map.
+                </li>
+                <li>
+                  A simple color mapping that bins FP8 probabilities into a small number of
+                  discrete colors based mainly on a subset of exponent/mantissa bits; this
+                  avoids doing full floating-point comparisons in the graphics path.
+                </li>
+              </ul>
+
+              <p>
+                High-probability regions near the tornado track show up in magenta, with
+                surrounding “watch” regions rendered in warmer colors. A small progress bar
+                at the bottom tracks the hour index as the demo steps through the 24-hour
+                window.
+              </p>
+
+              <h2>Design resources &amp; performance</h2>
+              <p>
+                The design fits comfortably on the target FPGA while leaving enough headroom
+                for the graphics pipeline and ROMs. Post-synthesis and power analysis report:
+              </p>
+
+              <table class="writeup-table">
+                <tr>
+                  <th>Resource</th>
+                  <th>Usage</th>
+                </tr>
+                <tr>
+                  <td>LUTs</td>
+                  <td>20,238</td>
+                </tr>
+                <tr>
+                  <td>DSPs</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>Block RAM</td>
+                  <td>58.5</td>
+                </tr>
+                <tr>
+                  <td>Flip-flops</td>
+                  <td>3,564</td>
+                </tr>
+                <tr>
+                  <td>Max clock (approx.)</td>
+                  <td>~97.3&nbsp;MHz</td>
+                </tr>
+                <tr>
+                  <td>Total power</td>
+                  <td>~0.44&nbsp;W (0.075&nbsp;W static, 0.364&nbsp;W dynamic)</td>
+                </tr>
+              </table>
+
+              <h2>Takeaways &amp; future work</h2>
+              <p>
+                A few things we learned from building DeepTornado end-to-end in hardware:
+              </p>
+              <ul>
+                <li>
+                  <strong>Rounding matters.</strong> Skipping rounding in the BF16 adder
+                  saves LUTs but introduces non-trivial numerical error. For deeper networks
+                  or more sensitive tasks we’d want at least a minimal rounding mode.
+                </li>
+                <li>
+                  <strong>FPGA LUTs disappear quickly.</strong> Even this relatively small
+                  model plus graphics pushes LUT usage. Scaling to larger models would
+                  require more aggressive quantization or different array tiling strategies.
+                </li>
+                <li>
+                  <strong>ROMs are underappreciated.</strong> Using block RAM for weights,
+                  inputs, and even the Illinois background made the graphics and demo logic
+                  much simpler than it would have been with fully procedural drawing.
+                </li>
+              </ul>
+
+              <p>
+                Going forward, obvious extensions would be:
+              </p>
+              <ul>
+                <li>
+                  Adding proper rounding to the BF16 adder and measuring the accuracy
+                  improvement.
+                </li>
+                <li>
+                  Exploring larger or convolutional models on the same systolic infrastructure.
+                </li>
+                <li>
+                  Feeding realtime weather data instead of a fixed historical trace.
+                </li>
+              </ul>
+
+              <p>
+                Overall, the project was a good stress test of building a custom AI accelerator
+                in HDL, driving it with a real model, and connecting it to a realtime graphics
+                frontend on the same FPGA.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="container footer-inner">
+          <span>&copy; <span id="year"></span> Neil Deo</span>
+          <span>DeepTornado writeup.</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

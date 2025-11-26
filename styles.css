@@ -300,6 +300,10 @@ body {
   display: block;
   background: #ffffff;
 }
+.writeups-list {
+  max-width: 880px;
+  margin-top: 1.5rem;
+}
 
 .sim-card-footnote {
   padding: 0.4rem 0.8rem 0.45rem;
