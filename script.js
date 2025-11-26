@@ -13,8 +13,8 @@ class GameOfLife {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: false });
 
-    // Smaller cellSize -> more cells
-    this.cellSize = 8;
+    // Smaller cellSize = more cells
+    this.cellSize = 6;
     this.cols = 0;
     this.rows = 0;
     this.grid = null;
@@ -22,7 +22,7 @@ class GameOfLife {
 
     this.lastFrameTime = 0;
     this.frameInterval = 80; // ms between generations
-    this.running = true; // auto-run like the reference
+    this.running = false;    // start paused
 
     window.addEventListener("resize", () => this.handleResize());
     this.handleResize();
@@ -46,7 +46,8 @@ class GameOfLife {
     this.grid = new Uint8Array(this.cols * this.rows);
     this.nextGrid = new Uint8Array(this.cols * this.rows);
 
-    this.seedGliders();
+    // Initial seed: Illinois I + corner gliders
+    this.seedIlliniLogo();
     this.draw();
   }
 
@@ -59,8 +60,10 @@ class GameOfLife {
     if (this.nextGrid) this.nextGrid.fill(0);
   }
 
-  // Place a single canonical glider (moving down-right) with top-left at (x, y)
+  // ------- Glider placement (down-right moving glider) -------
+
   placeGlider(x, y) {
+    // Canonical glider:
     //  . # .
     //  . . #
     //  # # #
@@ -81,30 +84,76 @@ class GameOfLife {
     }
   }
 
-  // Seed ~3–4 gliders on the left side, spaced vertically
-  seedGliders() {
-    this.clear();
+  seedCornerGliders() {
+    if (this.cols < 10 || this.rows < 10) return;
 
-    if (this.cols < 5 || this.rows < 5) return;
+    // Top-left
+    this.placeGlider(10, 10);
 
-    const maxGlidersWanted = 4;
-    const gliderHeight = 5;
-    const spacing = 7;
+    // Top-right
+    this.placeGlider(this.cols - 14, 10);
 
-    const maxPossible =
-      Math.floor((this.rows - gliderHeight) / spacing) + 1;
-    const count = Math.min(maxGlidersWanted, Math.max(1, maxPossible));
+    // Bottom-left
+    this.placeGlider(10, this.rows - 14);
 
-    const startX = 2;
-    for (let i = 0; i < count; i++) {
-      const baseY = 2 + i * spacing;
-      if (baseY + gliderHeight < this.rows) {
-        this.placeGlider(startX, baseY);
-      }
-    }
+    // Bottom-right
+    this.placeGlider(this.cols - 14, this.rows - 14);
   }
 
-  // Toggle a cell based on a click inside the canvas
+  // ------- Illinois "I" pattern in the center -------
+
+  seedIlliniLogo() {
+    this.clear();
+    if (this.cols < 10 || this.rows < 10) return;
+
+    const pattern = [
+      "0001111111000", // top bar
+      "0001111111000",
+      "0000011100000", // vertical stroke
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0000011100000",
+      "0001111111000", // bottom bar
+      "0001111111000",
+    ];
+
+    const ph = pattern.length;
+    const pw = pattern[0].length;
+
+    const startX = Math.floor(this.cols / 2 - pw / 2);
+    const startY = Math.floor(this.rows / 2 - ph / 2);
+
+    for (let y = 0; y < ph; y++) {
+      const row = pattern[y];
+      for (let x = 0; x < pw; x++) {
+        if (row[x] === "1") {
+          const gx = startX + x;
+          const gy = startY + y;
+          if (gx >= 0 && gx < this.cols && gy >= 0 && gy < this.rows) {
+            this.grid[this.index(gx, gy)] = 1;
+          }
+        }
+      }
+    }
+
+    // Add four gliders in the corners after drawing the I
+    this.seedCornerGliders();
+  }
+
+  // Public reset helper: Illinois + corner gliders + pause + redraw
+  reset() {
+    this.running = false;
+    this.seedIlliniLogo();
+    this.draw();
+  }
+
+  // ------- Interaction -------
+
   toggleAtClientCoord(clientX, clientY) {
     const rect = this.canvas.getBoundingClientRect();
     const x = clientX - rect.left;
@@ -115,14 +164,14 @@ class GameOfLife {
 
     const col = Math.floor(x / this.cellSize);
     const row = Math.floor(y / this.cellSize);
-
     if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) return;
 
     const idx = this.index(col, row);
     this.grid[idx] = this.grid[idx] ? 0 : 1;
-
     this.draw();
   }
+
+  // ------- Simulation core -------
 
   step() {
     const cols = this.cols;
@@ -173,16 +222,17 @@ class GameOfLife {
 
     if (!ctx || !g) return;
 
-    const rect = this.canvas.getBoundingClientRect();
+    const width = this.canvas.width / (window.devicePixelRatio || 1);
+    const height = this.canvas.height / (window.devicePixelRatio || 1);
 
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, width, height);
 
-    // Background: pure black
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    // Background: Illinois blue
+    ctx.fillStyle = "#13294b";
+    ctx.fillRect(0, 0, width, height);
 
-    // Alive cells: white
-    ctx.fillStyle = "#ffffff";
+    // Alive cells: Illinois orange
+    ctx.fillStyle = "#e84a27";
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         if (g[this.index(x, y)]) {
@@ -196,8 +246,8 @@ class GameOfLife {
       }
     }
 
-    // Grid lines: dark gray
-    ctx.strokeStyle = "#111827";
+    // Grid lines: darker blue
+    ctx.strokeStyle = "#0b172b";
     ctx.lineWidth = 1;
 
     for (let x = 0; x <= cols; x++) {
@@ -223,7 +273,6 @@ class GameOfLife {
       }
       this.draw();
     }
-
     requestAnimationFrame((t) => this.update(t));
   }
 
@@ -247,14 +296,16 @@ document.addEventListener("DOMContentLoaded", () => {
   gol.start();
 
   const toggleBtn = document.getElementById("gol-toggle");
+  const resetBtn = document.getElementById("gol-reset");
 
-  function refreshButton() {
+  function refreshPlayButton() {
     if (!toggleBtn) return;
     toggleBtn.textContent = gol.running ? "Pause" : "Play";
     toggleBtn.setAttribute("aria-pressed", gol.running ? "true" : "false");
   }
 
-  refreshButton();
+  // Initial: paused → shows "Play"
+  refreshPlayButton();
 
   // Click inside the canvas to toggle cells
   canvas.addEventListener("click", (event) => {
@@ -263,9 +314,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Play / Pause button
   if (toggleBtn) {
-    toggleBtn.addEventListener("click", () => {
+    toggleBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
       gol.running = !gol.running;
-      refreshButton();
+      refreshPlayButton();
+    });
+  }
+
+  // Reset button: restore Illinois logo + corner gliders and pause
+  if (resetBtn) {
+    resetBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      gol.reset();
+      refreshPlayButton();
     });
   }
 });

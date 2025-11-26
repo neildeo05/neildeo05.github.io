@@ -36,8 +36,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <h1>Neil Deo</h1>
             <p class="hero-body">
               I'm an undergraduate in Computer Engineering with a minor in Semiconductor Engineering at the
-              University of Illinois Urbana-Champaign, working at the intersection of hardware design,
-              device physics, and AI.
+              University of Illinois Urbana-Champaign, working at the intersection of hardware design and AI.
             </p>
             <div class="hero-links">
               <a href="mailto:neildeo2@illinois.edu" class="btn primary">Email</a>
@@ -57,15 +56,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <aside class="hero-sim">
             <div class="sim-card">
               <div class="sim-card-header">
-                <button
-                  id="gol-toggle"
-                  class="sim-toggle"
-                  type="button"
-                  aria-pressed="true"
-                >
-                  Pause
-                </button>
-              </div>
+  <span class="sim-title">press play :)</span>
+  <div class="sim-controls">
+    <button
+      id="gol-reset"
+      class="sim-toggle"
+      type="button"
+    >
+      Reset
+    </button>
+    <button
+      id="gol-toggle"
+      class="sim-toggle"
+      type="button"
+      aria-pressed="false"
+    >
+      Play
+    </button>
+  </div>
+</div>
               <div class="sim-card-body">
                 <canvas id="gol-canvas"></canvas>
               </div>
@@ -131,7 +140,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="experience-role">AI Engineering Intern</div>
           <div class="experience-company">Shothawk AI</div>
           <p class="experience-blurb">
-            Training custom transformer models to detect weapons and active threat situations
+            Training custom transformer models and making them run fast on edge devices
           </p>
         </div>
         <div class="experience-dates">May 2024 – Present</div>
